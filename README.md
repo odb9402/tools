@@ -1,60 +1,60 @@
 # CLI Tools Collection
 
-개발 환경 세팅을 위한 필수 CLI 도구 모음입니다.
+Essential CLI tools for setting up development environments.
 
 ## Quick Start
 
-새로운 개발 환경에서 한 번에 모든 도구를 설치:
+Install all tools on a new development environment with one command:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/tools/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/odb9402/tools/main/install.sh | bash
 ```
 
-또는 개별 설치:
+Or install individually:
 
 ```bash
 cd dotfiles
-./install_essential.sh  # 필수 도구만
-./install_optional.sh   # 선택적 도구 (추천)
+./install_essential.sh  # Essential tools only
+./install_optional.sh   # Optional tools (recommended)
 ```
 
-## Essential Tools (필수 도구)
+## Essential Tools
 
 ### Terminal & Shell
-- **tmux** - 터미널 멀티플렉서, 세션 관리
-- **fish** - 사용자 친화적인 쉘 (자동완성, syntax highlighting)
+- **tmux** - Terminal multiplexer for session management
+- **fish** - User-friendly shell with autocompletion and syntax highlighting
 
 ### Monitoring
-- **htop** - 인터랙티브 프로세스 뷰어
-- **nvtop** - GPU 모니터링 도구 (NVIDIA, AMD 등)
+- **htop** - Interactive process viewer
+- **nvtop** - GPU monitoring tool (NVIDIA, AMD, etc.)
 
 ### Development Tools
-- **uv** - 초고속 Python 패키지 매니저 (pip/pip-tools 대체)
-- **gh** - GitHub CLI - 이슈, PR 등을 터미널에서 관리
-- **lazygit** - Git을 위한 심플한 터미널 UI
+- **uv** - Ultra-fast Python package manager (pip/pip-tools replacement)
+- **gh** - GitHub CLI for managing issues and PRs from terminal
+- **lazygit** - Simple terminal UI for Git
 - **claude** - Anthropic Claude CLI
 
 ### Data Processing
-- **jq** - JSON 프로세서
-- **yq** - YAML 프로세서 (jq의 YAML 버전)
+- **jq** - JSON processor
+- **yq** - YAML processor (YAML version of jq)
 
-## Optional Tools (추천 도구)
+## Optional Tools
 
-현대적인 CLI 도구들로 생산성을 크게 향상시킵니다:
+Modern CLI tools that significantly boost productivity:
 
 ### Git Enhancement
-- **delta** - Git diff를 아름답게 표시 (syntax highlighting, side-by-side)
+- **delta** - Beautiful git diffs with syntax highlighting and side-by-side view
 
 ### Search & Navigation
-- **fd** - `find`의 현대적 대체품 (더 빠르고 직관적)
-- **ripgrep (rg)** - `grep`의 현대적 대체품 (초고속 코드 검색)
-- **fzf** - 퍼지 파인더 (파일, 히스토리, 프로세스 인터랙티브 검색)
-- **zoxide** - 스마트한 `cd` (자주 가는 디렉토리 학습 및 빠른 이동)
+- **fd** - Modern replacement for `find` (faster and more intuitive)
+- **ripgrep (rg)** - Modern replacement for `grep` (blazing fast code search)
+- **fzf** - Fuzzy finder for interactive file, history, and process search
+- **zoxide** - Smart `cd` that learns your most-used directories
 
 ## Installation Details
 
 ### tmux
-터미널 세션을 분리하고 여러 윈도우/패널을 관리할 수 있습니다.
+Terminal session management with multiple windows and panes.
 ```bash
 # Ubuntu/Debian
 sudo apt install tmux
@@ -64,7 +64,7 @@ brew install tmux
 ```
 
 ### fish
-강력한 자동완성과 syntax highlighting을 제공하는 쉘입니다.
+Powerful shell with great autocompletion and syntax highlighting.
 ```bash
 # Ubuntu/Debian
 sudo apt install fish
@@ -72,12 +72,12 @@ sudo apt install fish
 # macOS
 brew install fish
 
-# 기본 쉘로 설정
+# Set as default shell
 chsh -s $(which fish)
 ```
 
 ### htop
-시스템 리소스를 실시간으로 모니터링합니다.
+Real-time system resource monitoring.
 ```bash
 # Ubuntu/Debian
 sudo apt install htop
@@ -87,7 +87,7 @@ brew install htop
 ```
 
 ### nvtop
-GPU 사용량을 실시간으로 모니터링합니다.
+Real-time GPU usage monitoring.
 ```bash
 # Ubuntu/Debian
 sudo apt install nvtop
@@ -97,13 +97,13 @@ brew install nvtop
 ```
 
 ### uv
-Rust로 작성된 초고속 Python 패키지 매니저입니다.
+Ultra-fast Python package manager written in Rust.
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 ### gh (GitHub CLI)
-터미널에서 GitHub를 관리합니다.
+Manage GitHub from your terminal.
 ```bash
 # Ubuntu/Debian
 (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) \
@@ -119,23 +119,23 @@ brew install gh
 ```
 
 ### lazygit
-Git을 위한 심플한 터미널 UI입니다.
+Simple terminal UI for Git.
 ```bash
 # See dotfiles/install_lazygit.sh
 ```
 
 ### claude
-Anthropic의 Claude AI CLI 도구입니다.
+Anthropic's Claude AI CLI tool.
 ```bash
-# npm을 통한 설치
+# Install via npm
 npm install -g @anthropic-ai/claude-cli
 
-# 또는 공식 설치 스크립트
+# Or use official install script
 curl -fsSL https://claude.ai/install.sh | sh
 ```
 
 ### jq
-JSON 데이터를 쿼리하고 조작합니다.
+Query and manipulate JSON data.
 ```bash
 # Ubuntu/Debian
 sudo apt install jq
@@ -145,7 +145,7 @@ brew install jq
 ```
 
 ### yq
-YAML 데이터를 쿼리하고 조작합니다.
+Query and manipulate YAML data.
 ```bash
 # Ubuntu/Debian
 sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
@@ -156,7 +156,7 @@ brew install yq
 ```
 
 ### delta
-Git diff를 더 읽기 쉽게 만듭니다.
+Makes git diffs more readable and beautiful.
 ```bash
 # Ubuntu/Debian
 wget https://github.com/dandavison/delta/releases/download/0.17.0/git-delta_0.17.0_amd64.deb
@@ -165,7 +165,7 @@ sudo dpkg -i git-delta_0.17.0_amd64.deb
 # macOS
 brew install git-delta
 
-# .gitconfig에 추가
+# Configure git to use delta
 git config --global core.pager delta
 git config --global interactive.diffFilter "delta --color-only"
 git config --global delta.navigate true
@@ -174,7 +174,7 @@ git config --global diff.colorMoved default
 ```
 
 ### fd
-빠르고 사용자 친화적인 `find` 대체품입니다.
+Fast and user-friendly alternative to `find`.
 ```bash
 # Ubuntu/Debian
 sudo apt install fd-find
@@ -184,7 +184,7 @@ brew install fd
 ```
 
 ### ripgrep (rg)
-초고속 재귀 검색 도구입니다.
+Blazing fast recursive search tool.
 ```bash
 # Ubuntu/Debian
 sudo apt install ripgrep
@@ -194,13 +194,13 @@ brew install ripgrep
 ```
 
 ### fzf
-커맨드라인 퍼지 파인더입니다.
+Command-line fuzzy finder.
 ```bash
 # Ubuntu/Debian & macOS
 git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
 ~/.fzf/install
 
-# 또는
+# Or via package manager
 # Ubuntu/Debian
 sudo apt install fzf
 
@@ -210,41 +210,41 @@ $(brew --prefix)/opt/fzf/install
 ```
 
 ### zoxide
-스마트한 디렉토리 네비게이션입니다.
+Smart directory navigation that learns your habits.
 ```bash
 curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
 
-# fish 쉘 설정 (~/.config/fish/config.fish에 추가)
+# Add to fish config (~/.config/fish/config.fish)
 zoxide init fish | source
 ```
 
 ## Usage Examples
 
-### fzf로 파일 열기
+### Open files with fzf
 ```bash
 vim $(fzf)
 ```
 
-### zoxide로 빠른 디렉토리 이동
+### Quick directory navigation with zoxide
 ```bash
-z tools  # /path/to/tools로 점프
-z doc    # /path/to/documents로 점프
+z tools  # Jump to /path/to/tools
+z doc    # Jump to /path/to/documents
 ```
 
-### ripgrep + fzf 조합
+### Combine ripgrep with fzf
 ```bash
 rg "TODO" | fzf
 ```
 
-### fd로 파일 찾기
+### Find files with fd
 ```bash
-fd test     # test가 포함된 파일
-fd -e py    # .py 확장자 파일만
+fd test     # Files containing "test"
+fd -e py    # Only .py files
 ```
 
 ## Configuration
 
-각 도구의 설정 파일 예시는 `dotfiles/` 디렉토리를 참고하세요.
+See the `dotfiles/` directory for configuration file examples.
 
 ## License
 

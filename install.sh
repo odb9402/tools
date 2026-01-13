@@ -49,7 +49,7 @@ if [ -d "$SCRIPT_DIR/dotfiles" ]; then
 else
     echo "Cloning tools repository..."
     TEMP_DIR=$(mktemp -d)
-    git clone https://github.com/YOUR_USERNAME/tools.git "$TEMP_DIR"
+    git clone https://github.com/odb9402/tools.git "$TEMP_DIR"
     cd "$TEMP_DIR"
 fi
 
