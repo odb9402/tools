@@ -1,10 +1,36 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Parse arguments for non-interactive mode
+NONINTERACTIVE=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -y|--yes)
+            NONINTERACTIVE=true
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
 echo "======================================"
 echo "Installing Optional CLI Tools"
 echo "======================================"
 echo
+
+# Run command with sudo if needed (handles k8s pods where sudo is not available)
+run_privileged() {
+    if [ "$(id -u)" -eq 0 ]; then
+        "$@"
+    elif command -v sudo >/dev/null 2>&1; then
+        sudo "$@"
+    else
+        echo "Error: This script requires root privileges. Please run as root or install sudo."
+        exit 1
+    fi
+}
 
 # Detect OS
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -27,11 +53,13 @@ echo "  - fzf (fuzzy finder)"
 echo "  - zoxide (smart cd)"
 echo
 
-read -p "Continue? (y/N) " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "Installation cancelled."
-    exit 0
+if [ "$NONINTERACTIVE" = false ]; then
+    read -p "Continue? (y/N) " -n 1 -r < /dev/tty
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Installation cancelled."
+        exit 0
+    fi
 fi
 
 echo
@@ -78,7 +106,7 @@ if [ "$OS" = "macos" ]; then
 # Linux installations
 elif [ "$OS" = "linux" ]; then
     echo "Updating package lists..."
-    sudo apt update
+    run_privileged apt update
     echo
 
     # delta
@@ -88,14 +116,14 @@ elif [ "$OS" = "linux" ]; then
         echo "→ Installing delta..."
         DELTA_VERSION="0.17.0"
         wget -q "https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/git-delta_${DELTA_VERSION}_amd64.deb"
-        sudo dpkg -i "git-delta_${DELTA_VERSION}_amd64.deb"
+        run_privileged dpkg -i "git-delta_${DELTA_VERSION}_amd64.deb"
         rm "git-delta_${DELTA_VERSION}_amd64.deb"
         echo "✓ delta installed successfully"
     fi
     echo
 
-    install_tool "fd" "sudo apt install -y fd-find && sudo ln -sf \$(which fdfind) /usr/local/bin/fd 2>/dev/null || true"
-    install_tool "rg" "sudo apt install -y ripgrep"
+    install_tool "fd" "run_privileged apt install -y fd-find && run_privileged ln -sf \$(which fdfind) /usr/local/bin/fd 2>/dev/null || true"
+    install_tool "rg" "run_privileged apt install -y ripgrep"
 
     # fzf
     if command_exists fzf; then

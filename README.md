@@ -18,6 +18,34 @@ cd dotfiles
 ./install_optional.sh   # Optional tools (recommended)
 ```
 
+### Non-interactive Mode (Docker/CI)
+
+For Dockerfiles or CI environments, use `-y` flag to skip confirmation prompts:
+
+```bash
+# Install all tools non-interactively (option 2 is default)
+./install.sh -y
+
+# Install essential tools only
+./install.sh -y 1
+
+# Install essential + optional tools
+./install.sh -y 2
+
+# Individual scripts also support -y
+./dotfiles/install_essential.sh -y
+./dotfiles/install_optional.sh -y
+```
+
+Example Dockerfile:
+```dockerfile
+RUN curl -fsSL https://raw.githubusercontent.com/odb9402/tools/main/install.sh -o install.sh \
+    && chmod +x install.sh \
+    && ./install.sh -y 2
+```
+
+**Note:** Scripts work in k8s pods and containers where `sudo` is not available (when running as root).
+
 ## Essential Tools
 
 ### Terminal & Shell
