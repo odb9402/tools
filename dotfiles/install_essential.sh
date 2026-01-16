@@ -1,10 +1,36 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Parse arguments for non-interactive mode
+NONINTERACTIVE=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -y|--yes)
+            NONINTERACTIVE=true
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
 echo "======================================"
 echo "Installing Essential CLI Tools"
 echo "======================================"
 echo
+
+# Run command with sudo if needed (handles k8s pods where sudo is not available)
+run_privileged() {
+    if [ "$(id -u)" -eq 0 ]; then
+        "$@"
+    elif command -v sudo >/dev/null 2>&1; then
+        sudo "$@"
+    else
+        echo "Error: This script requires root privileges. Please run as root or install sudo."
+        exit 1
+    fi
+}
 
 # Detect OS
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -32,11 +58,13 @@ echo "  - yq (YAML processor)"
 echo "  - claude (Claude AI CLI)"
 echo
 
-read -p "Continue? (y/N) " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "Installation cancelled."
-    exit 0
+if [ "$NONINTERACTIVE" = false ]; then
+    read -p "Continue? (y/N) " -n 1 -r < /dev/tty
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Installation cancelled."
+        exit 0
+    fi
 fi
 
 echo
@@ -101,27 +129,27 @@ if [ "$OS" = "macos" ]; then
 # Linux installations
 elif [ "$OS" = "linux" ]; then
     echo "Updating package lists..."
-    sudo apt update
+    run_privileged apt update
     echo
 
-    install_tool "tmux" "sudo apt install -y tmux"
-    install_tool "fish" "sudo apt install -y fish"
-    install_tool "htop" "sudo apt install -y htop"
-    install_tool "nvtop" "sudo apt install -y nvtop"
-    install_tool "jq" "sudo apt install -y jq"
+    install_tool "tmux" "run_privileged apt install -y tmux"
+    install_tool "fish" "run_privileged apt install -y fish"
+    install_tool "htop" "run_privileged apt install -y htop"
+    install_tool "nvtop" "run_privileged apt install -y nvtop"
+    install_tool "jq" "run_privileged apt install -y jq"
 
     # gh (GitHub CLI)
     if command_exists gh; then
         echo "✓ gh is already installed, skipping..."
     else
         echo "→ Installing gh (GitHub CLI)..."
-        (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) \
-        && sudo mkdir -p -m 755 /etc/apt/keyrings \
-        && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
-        && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-        && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-        && sudo apt update \
-        && sudo apt install -y gh
+        (type -p wget >/dev/null || (run_privileged apt update && run_privileged apt-get install wget -y)) \
+        && run_privileged mkdir -p -m 755 /etc/apt/keyrings \
+        && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | run_privileged tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+        && run_privileged chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+        && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | run_privileged tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+        && run_privileged apt update \
+        && run_privileged apt install -y gh
         echo "✓ gh installed successfully"
     fi
     echo
@@ -134,7 +162,7 @@ elif [ "$OS" = "linux" ]; then
         LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
         curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
         tar xf lazygit.tar.gz lazygit
-        sudo install lazygit /usr/local/bin
+        run_privileged install lazygit /usr/local/bin
         rm lazygit lazygit.tar.gz
         echo "✓ lazygit installed successfully"
     fi
@@ -145,8 +173,8 @@ elif [ "$OS" = "linux" ]; then
         echo "✓ yq is already installed, skipping..."
     else
         echo "→ Installing yq..."
-        sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-        sudo chmod +x /usr/local/bin/yq
+        run_privileged wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+        run_privileged chmod +x /usr/local/bin/yq
         echo "✓ yq installed successfully"
     fi
     echo

@@ -1,6 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Parse arguments for non-interactive mode
+NONINTERACTIVE=false
+INSTALL_CHOICE=""
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -y|--yes)
+            NONINTERACTIVE=true
+            shift
+            ;;
+        1|2|3)
+            INSTALL_CHOICE="$1"
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
 echo "======================================"
 echo "CLI Tools Installer"
 echo "======================================"
@@ -36,8 +55,14 @@ echo "  2) Essential + Optional tools (recommended)"
 echo "  3) Optional tools only"
 echo
 
-read -p "Enter choice [1-3]: " -n 1 -r choice
-echo
+if [ "$NONINTERACTIVE" = true ]; then
+    # Use provided choice or default to 2 (recommended)
+    choice="${INSTALL_CHOICE:-2}"
+    echo "Non-interactive mode: selecting option $choice"
+else
+    read -p "Enter choice [1-3]: " -n 1 -r choice < /dev/tty
+    echo
+fi
 echo
 
 # Clone or use existing directory
@@ -56,25 +81,31 @@ fi
 # Make scripts executable
 chmod +x dotfiles/*.sh
 
+# Set flag for sub-scripts
+SCRIPT_FLAGS=""
+if [ "$NONINTERACTIVE" = true ]; then
+    SCRIPT_FLAGS="-y"
+fi
+
 # Install based on choice
 case $choice in
     1)
         echo "Installing essential tools..."
-        ./dotfiles/install_essential.sh
+        ./dotfiles/install_essential.sh $SCRIPT_FLAGS
         ;;
     2)
         echo "Installing all tools..."
-        ./dotfiles/install_essential.sh
+        ./dotfiles/install_essential.sh $SCRIPT_FLAGS
         echo
         echo "======================================"
         echo "Now installing optional tools..."
         echo "======================================"
         echo
-        ./dotfiles/install_optional.sh
+        ./dotfiles/install_optional.sh $SCRIPT_FLAGS
         ;;
     3)
         echo "Installing optional tools..."
-        ./dotfiles/install_optional.sh
+        ./dotfiles/install_optional.sh $SCRIPT_FLAGS
         ;;
     *)
         echo "Invalid choice. Exiting."
