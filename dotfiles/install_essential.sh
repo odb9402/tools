@@ -122,9 +122,7 @@ if [ "$OS" = "macos" ]; then
 
     # claude
     echo "→ Installing claude..."
-    echo "Note: Claude CLI installation may require npm or manual setup."
-    echo "Visit: https://docs.anthropic.com/claude/docs/claude-cli for instructions"
-    echo
+    curl -fsSL https://claude.ai/install.sh | bash
 
 # Linux installations
 elif [ "$OS" = "linux" ]; then
@@ -191,9 +189,7 @@ elif [ "$OS" = "linux" ]; then
 
     # claude
     echo "→ Installing claude..."
-    echo "Note: Claude CLI installation may require npm or manual setup."
-    echo "Visit: https://docs.anthropic.com/claude/docs/claude-cli for instructions"
-    echo
+    curl -fsSL https://claude.ai/install.sh | bash
 fi
 
 echo
