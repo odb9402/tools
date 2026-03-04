@@ -15,22 +15,13 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Source shared helpers
+source "$(dirname "${BASH_SOURCE[0]}")/_common.sh"
+
 echo "======================================"
 echo "Installing Optional CLI Tools"
 echo "======================================"
 echo
-
-# Run command with sudo if needed (handles k8s pods where sudo is not available)
-run_privileged() {
-    if [ "$(id -u)" -eq 0 ]; then
-        "$@"
-    elif command -v sudo >/dev/null 2>&1; then
-        sudo "$@"
-    else
-        echo "Error: This script requires root privileges. Please run as root or install sudo."
-        exit 1
-    fi
-}
 
 # Detect OS
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -39,6 +30,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     OS="linux"
     echo "Detected Linux"
+    if [ "$CAN_SUDO" = false ]; then
+        echo "  (no sudo available - will install to ~/.local/bin where possible)"
+    fi
 else
     echo "Unsupported OS type: $OSTYPE"
     exit 1
@@ -64,30 +58,6 @@ fi
 
 echo
 
-# Function to check if command exists
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
-}
-
-# Install function with skip check
-install_tool() {
-    local tool_name=$1
-    local install_cmd=$2
-
-    if command_exists "$tool_name"; then
-        echo "✓ $tool_name is already installed, skipping..."
-    else
-        echo "→ Installing $tool_name..."
-        eval "$install_cmd"
-        if command_exists "$tool_name"; then
-            echo "✓ $tool_name installed successfully"
-        else
-            echo "✗ Failed to install $tool_name"
-        fi
-    fi
-    echo
-}
-
 # macOS installations
 if [ "$OS" = "macos" ]; then
     # Check if Homebrew is installed
@@ -105,27 +75,86 @@ if [ "$OS" = "macos" ]; then
 
 # Linux installations
 elif [ "$OS" = "linux" ]; then
-    echo "Updating package lists..."
-    run_privileged apt update
-    echo
+    if [ "$CAN_SUDO" = true ]; then
+        echo "Updating package lists..."
+        run_privileged apt update
+        echo
 
-    # delta
-    if command_exists delta; then
-        echo "✓ delta is already installed, skipping..."
+        # delta via .deb
+        if command_exists delta; then
+            echo "✓ delta is already installed, skipping..."
+        else
+            echo "→ Installing delta..."
+            DELTA_VERSION="0.17.0"
+            wget -q "https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/git-delta_${DELTA_VERSION}_${ARCH}.deb"
+            run_privileged dpkg -i "git-delta_${DELTA_VERSION}_${ARCH}.deb"
+            rm "git-delta_${DELTA_VERSION}_${ARCH}.deb"
+            echo "✓ delta installed successfully"
+        fi
+        echo
+
+        install_tool "fd" "run_privileged apt install -y fd-find && run_privileged ln -sf \$(which fdfind) /usr/local/bin/fd 2>/dev/null || true"
+        install_tool "rg" "run_privileged apt install -y ripgrep"
     else
-        echo "→ Installing delta..."
-        DELTA_VERSION="0.17.0"
-        wget -q "https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/git-delta_${DELTA_VERSION}_amd64.deb"
-        run_privileged dpkg -i "git-delta_${DELTA_VERSION}_amd64.deb"
-        rm "git-delta_${DELTA_VERSION}_amd64.deb"
-        echo "✓ delta installed successfully"
+        # No sudo: install from binary tarballs
+        ensure_local_bin
+
+        # delta binary tarball
+        if command_exists delta; then
+            echo "✓ delta is already installed, skipping..."
+        else
+            echo "→ Installing delta (binary)..."
+            DELTA_VERSION="0.17.0"
+            curl -Lo delta.tar.gz "https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/delta-${DELTA_VERSION}-${ARCH_ALT}-unknown-linux-gnu.tar.gz"
+            tar xf delta.tar.gz
+            install "delta-${DELTA_VERSION}-${ARCH_ALT}-unknown-linux-gnu/delta" "$LOCAL_BIN/delta"
+            rm -rf delta.tar.gz "delta-${DELTA_VERSION}-${ARCH_ALT}-unknown-linux-gnu"
+            if command_exists delta; then
+                echo "✓ delta installed successfully"
+            else
+                echo "✗ Failed to install delta"
+            fi
+        fi
+        echo
+
+        # fd binary tarball
+        if command_exists fd; then
+            echo "✓ fd is already installed, skipping..."
+        else
+            echo "→ Installing fd (binary)..."
+            FD_VERSION=$(curl -s "https://api.github.com/repos/sharkdp/fd/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+            curl -Lo fd.tar.gz "https://github.com/sharkdp/fd/releases/download/v${FD_VERSION}/fd-v${FD_VERSION}-${ARCH_ALT}-unknown-linux-gnu.tar.gz"
+            tar xf fd.tar.gz
+            install "fd-v${FD_VERSION}-${ARCH_ALT}-unknown-linux-gnu/fd" "$LOCAL_BIN/fd"
+            rm -rf fd.tar.gz "fd-v${FD_VERSION}-${ARCH_ALT}-unknown-linux-gnu"
+            if command_exists fd; then
+                echo "✓ fd installed successfully"
+            else
+                echo "✗ Failed to install fd"
+            fi
+        fi
+        echo
+
+        # ripgrep binary tarball
+        if command_exists rg; then
+            echo "✓ rg is already installed, skipping..."
+        else
+            echo "→ Installing ripgrep (binary)..."
+            RG_VERSION=$(curl -s "https://api.github.com/repos/BurntSushi/ripgrep/releases/latest" | grep -Po '"tag_name": "\K[^"]*')
+            curl -Lo rg.tar.gz "https://github.com/BurntSushi/ripgrep/releases/download/${RG_VERSION}/ripgrep-${RG_VERSION}-${ARCH_ALT}-unknown-linux-musl.tar.gz"
+            tar xf rg.tar.gz
+            install "ripgrep-${RG_VERSION}-${ARCH_ALT}-unknown-linux-musl/rg" "$LOCAL_BIN/rg"
+            rm -rf rg.tar.gz "ripgrep-${RG_VERSION}-${ARCH_ALT}-unknown-linux-musl"
+            if command_exists rg; then
+                echo "✓ rg installed successfully"
+            else
+                echo "✗ Failed to install rg"
+            fi
+        fi
+        echo
     fi
-    echo
 
-    install_tool "fd" "run_privileged apt install -y fd-find && run_privileged ln -sf \$(which fdfind) /usr/local/bin/fd 2>/dev/null || true"
-    install_tool "rg" "run_privileged apt install -y ripgrep"
-
-    # fzf
+    # fzf (already user-local via git clone)
     if command_exists fzf; then
         echo "✓ fzf is already installed, skipping..."
     else
@@ -136,7 +165,7 @@ elif [ "$OS" = "linux" ]; then
     fi
     echo
 
-    # zoxide
+    # zoxide (already user-local via install script)
     if command_exists zoxide; then
         echo "✓ zoxide is already installed, skipping..."
     else
