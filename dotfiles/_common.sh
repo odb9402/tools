@@ -28,7 +28,8 @@ detect_privileges() {
     if [ "$(id -u)" -eq 0 ]; then
         CAN_SUDO=true
         LOCAL_BIN="/usr/local/bin"
-    elif command -v sudo >/dev/null 2>&1; then
+    elif command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+        # sudo exists AND user has passwordless sudo access
         CAN_SUDO=true
         LOCAL_BIN="/usr/local/bin"
     else
@@ -41,7 +42,7 @@ detect_privileges() {
 run_privileged() {
     if [ "$(id -u)" -eq 0 ]; then
         "$@"
-    elif command -v sudo >/dev/null 2>&1; then
+    elif command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
         sudo "$@"
     else
         echo "Warning: No root privileges available. Skipping: $*"
