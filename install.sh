@@ -10,7 +10,7 @@ while [[ $# -gt 0 ]]; do
             NONINTERACTIVE=true
             shift
             ;;
-        1|2|3)
+        1|2|3|4)
             INSTALL_CHOICE="$1"
             shift
             ;;
@@ -53,6 +53,7 @@ echo "What would you like to install?"
 echo "  1) Essential tools only"
 echo "  2) Essential + Optional tools (recommended)"
 echo "  3) Optional tools only"
+echo "  4) oh-my-claudecode (Claude Code orchestration framework)"
 echo
 
 if [ "$NONINTERACTIVE" = true ]; then
@@ -106,6 +107,10 @@ case $choice in
     3)
         echo "Installing optional tools..."
         ./dotfiles/install_optional.sh $SCRIPT_FLAGS
+        ;;
+    4)
+        echo "Installing oh-my-claudecode..."
+        ./dotfiles/install_omc.sh $SCRIPT_FLAGS
         ;;
     *)
         echo "Invalid choice. Exiting."

@@ -21,6 +21,7 @@ This is a CLI tools collection that provides automated installation scripts for 
 ./dotfiles/install_optional.sh       # delta, fd, ripgrep, fzf, zoxide
 ./dotfiles/install_lazygit.sh        # lazygit only
 ./dotfiles/install_aws.sh            # AWS CLI v2
+./dotfiles/install_omc.sh            # oh-my-claudecode (Claude Code orchestration)
 
 # One-liner installation from remote
 curl -fsSL https://raw.githubusercontent.com/odb9402/tools/main/install.sh | bash
