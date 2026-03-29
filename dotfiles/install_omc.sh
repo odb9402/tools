@@ -41,22 +41,44 @@ echo
 
 # Ensure Node.js is available
 if ! command_exists node; then
-    echo "→ Node.js not found. Installing via Homebrew (macOS) or nvm..."
+    echo "→ Node.js not found. Installing..."
+    NODE_LTS_VERSION="22.16.0"
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        if command_exists brew; then
-            brew install node
-        else
-            echo "✗ Homebrew not found. Please install Node.js >= 20 manually."
-            exit 1
-        fi
+        NODE_ARCH="darwin-arm64"
+        [[ "$(uname -m)" == "x86_64" ]] && NODE_ARCH="darwin-x64"
+        echo "→ Downloading Node.js v${NODE_LTS_VERSION} (${NODE_ARCH})..."
+        curl -fsSL "https://nodejs.org/dist/v${NODE_LTS_VERSION}/node-v${NODE_LTS_VERSION}-${NODE_ARCH}.tar.gz" -o /tmp/node.tar.gz
+        mkdir -p "$HOME/.local"
+        tar xzf /tmp/node.tar.gz -C "$HOME/.local/"
+        mkdir -p "$HOME/.local/bin"
+        ln -sf "$HOME/.local/node-v${NODE_LTS_VERSION}-${NODE_ARCH}/bin/node" "$HOME/.local/bin/node"
+        ln -sf "$HOME/.local/node-v${NODE_LTS_VERSION}-${NODE_ARCH}/bin/npm" "$HOME/.local/bin/npm"
+        ln -sf "$HOME/.local/node-v${NODE_LTS_VERSION}-${NODE_ARCH}/bin/npx" "$HOME/.local/bin/npx"
+        export PATH="$HOME/.local/bin:$PATH"
+        rm -f /tmp/node.tar.gz
+        echo "✓ Node.js installed to ~/.local"
     elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        echo "→ Installing Node.js via nvm..."
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-        nvm install --lts
+        NODE_ARCH="linux-x64"
+        [[ "$(uname -m)" == "aarch64" || "$(uname -m)" == "arm64" ]] && NODE_ARCH="linux-arm64"
+        echo "→ Downloading Node.js v${NODE_LTS_VERSION} (${NODE_ARCH})..."
+        curl -fsSL "https://nodejs.org/dist/v${NODE_LTS_VERSION}/node-v${NODE_LTS_VERSION}-${NODE_ARCH}.tar.gz" -o /tmp/node.tar.gz
+        mkdir -p "$HOME/.local"
+        tar xzf /tmp/node.tar.gz -C "$HOME/.local/"
+        mkdir -p "$HOME/.local/bin"
+        ln -sf "$HOME/.local/node-v${NODE_LTS_VERSION}-${NODE_ARCH}/bin/node" "$HOME/.local/bin/node"
+        ln -sf "$HOME/.local/node-v${NODE_LTS_VERSION}-${NODE_ARCH}/bin/npm" "$HOME/.local/bin/npm"
+        ln -sf "$HOME/.local/node-v${NODE_LTS_VERSION}-${NODE_ARCH}/bin/npx" "$HOME/.local/bin/npx"
+        export PATH="$HOME/.local/bin:$PATH"
+        rm -f /tmp/node.tar.gz
+        echo "✓ Node.js installed to ~/.local"
     fi
 fi
+
+# Ensure ~/.local/bin is in PATH for npm global installs
+export PATH="$HOME/.local/bin:$PATH"
+# Also add node's own bin dir to PATH (for npm global bin)
+NODE_DIR=$(dirname "$(readlink -f "$(which node)" 2>/dev/null || which node)")
+export PATH="$NODE_DIR:$PATH"
 
 NODE_VERSION=$(node --version | sed 's/v//' | cut -d. -f1)
 if [ "$NODE_VERSION" -lt 20 ]; then
